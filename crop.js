@@ -190,6 +190,30 @@ var crop = (function () {
             event.returnValue = false;
             return false;
         },
+
+        get_data: function(callback, encoding) {
+            // Make a png (or something else) out of the selected region
+            var encoding = encoding || "image/png";
+            
+            // Create elements to hold the new image
+            var new_canvas = document.createElement('canvas');
+            new_canvas.width = max_width;
+            new_canvas.height = max_height;
+            var new_ctx = new_canvas.getContext('2d');
+
+            // Get data from one canvas and draw it to the other
+            var data = ctx.getImageData(canvas.width/4, canvas.height/4, max_width, max_height);
+            new_ctx.putImageData(data, 0, 0);
+            
+            // Create image and set callback function trigger when it loads
+            var result_image = new Image();            
+            result_image.onload = function() {
+                callback(result_image);
+            };
+
+            // Start loading image
+            result_image.src = new_canvas.toDataURL(encoding);
+        },
         
         toggle_zoom: function(value) {
             if (showing_zoom !== value) {
