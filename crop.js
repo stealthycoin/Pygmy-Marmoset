@@ -167,12 +167,9 @@ var crop = (function () {
                 y_offset -= last_y - event.clientY;
                 last_x = event.clientX;
                 last_y = event.clientY;
-
-                // Set extrema for offsets
-                x_offset = Math.min(x_offset, max_width / 2);
-                y_offset = Math.min(y_offset, max_height / 2);
-                x_offset = Math.max(x_offset, (canvas.width * 3.0 / 4.0) - img.width);
-                y_offset = Math.max(y_offset, (canvas.height * 3.0 / 4.0) - img.height);
+                
+                // Stay in bounds and redraw
+                stay_in_bounds();
                 crop.render();
             }
             else if (sliding) {
@@ -187,6 +184,7 @@ var crop = (function () {
 
                 // Adjust image then draw
                 crop.change_zoom(before_zoom, zoom);
+                stay_in_bounds();
                 crop.render();
             }
             else {
