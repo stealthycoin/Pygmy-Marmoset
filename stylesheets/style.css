@@ -7,3 +7,7 @@
     display: inline;
     margin: 0 auto;
 }
+
+input[type=file] {
+    margin-right: -70px;
+}
