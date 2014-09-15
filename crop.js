@@ -18,6 +18,7 @@ var crop = (function () {
     var zoom = 1.0;
     var max_zoom = 3.0;
     var min_zoom = 0.25;
+    var base_min_zoom = 0.25;
     var showing_zoom = false;
     var sliding = false;
 
