@@ -69,7 +69,7 @@ var crop = (function () {
                 ctx.drawImage(img, 0, 0);
             }
             else {
-                ctx.fillStyle = "gray";
+                ctx.fillStyle = "lightgray";
                 ctx.fillRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
             }
         }
