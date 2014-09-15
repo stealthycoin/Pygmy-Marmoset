@@ -1,4 +1,4 @@
-
+// Crop module
 var crop = (function () {
     // Basic variables
     var canvas, ctx, img;
