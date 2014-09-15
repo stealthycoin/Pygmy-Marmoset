@@ -27,6 +27,14 @@ var crop = (function () {
         return Math.sqrt((a-c)*(a-c)+(b-d)*(b-d));
     }
 
+    function stay_in_bounds() {
+        // Set extrema for offsets
+        x_offset = Math.min(x_offset, max_width / 2);
+        y_offset = Math.min(y_offset, max_height / 2);
+        x_offset = Math.max(x_offset, (canvas.width * 3.0 / 4.0) - get_width());
+        y_offset = Math.max(y_offset, (canvas.height * 3.0 / 4.0) - get_height());
+    }
+
     function get_zoom_coordinate() {
         var min = MARGIN;
         var max = canvas.width - MARGIN;
