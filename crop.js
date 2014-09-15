@@ -223,8 +223,20 @@ var crop = (function () {
         },
         
         set_img: function(new_img) {
+            // Center new image
+            x_offset = -(new_img.width / 2 - canvas.width / 2);
+            y_offset = -(new_img.height / 2 - canvas.height / 2);
+
+            // Reset zoom level
+            zoom = 1;
+
             // Set a new image
             img = new_img;
+
+            // Find a new minimum zoom so that it fits in crop zone
+            var zoom_candidate_w = Math.max(base_min_zoom, max_width / img.width);
+            var zoom_candidate_h = Math.max(base_min_zoom, max_height / img.height);
+            min_zoom = Math.max(zoom_candidate_w, zoom_candidate_h);
             crop.render();
         },
         
