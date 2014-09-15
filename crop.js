@@ -59,6 +59,14 @@ var crop = (function () {
         return zoom;
     }
 
+    function get_width() {
+        return img.width * zoom;
+    }
+
+    function get_height() {
+        return img.height * zoom;
+    }
+
     return {
         init: function(canvas_id, selector_id, max_w, max_h) {
             // Setup the canvas element
