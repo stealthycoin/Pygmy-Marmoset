@@ -51,8 +51,6 @@ var crop = (function () {
         mouse_move: function() {
             last_x = event.clientX;
             last_y = event.clientY;
-            
-            
             crop.render();
         },
 
