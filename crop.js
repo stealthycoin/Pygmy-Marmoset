@@ -65,8 +65,12 @@ var crop = (function () {
         },
 
         render: function() {
-            if (img === undefined) {
+            if (img !== undefined) {
                 ctx.drawImage(img, 0, 0);
+            }
+            else {
+                ctx.fillStyle = "gray";
+                ctx.fillRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
             }
         }
     };
