@@ -12,16 +12,16 @@
     <a href="#" onclick="click_crop();return false;">Crop</a>
     <img id="result" />
 
-    <script src="crop.js"></script>
+    <script src="PygmyMarmoset.js"></script>
     <script>
-      crop.init("test_canvas", "selector", 100, 100);
+      PygmyMarmoset.init("test_canvas", "selector", 100, 100);
 
       function callback(img) {
       document.getElementById("result").src = img.src;
       }
 
       function click_crop() {
-      crop.get_data(callback);
+      PygmyMarmoset.get_data(callback);
       }
     </script>
   </body>

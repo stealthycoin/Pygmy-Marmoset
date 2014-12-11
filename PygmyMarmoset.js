@@ -1,5 +1,5 @@
-// Crop module
-var crop = (function () {
+// PygmyMarmoset module
+var PygmyMarmoset = (function () {
     // Globals
     var MARGIN = 10;
 
@@ -79,26 +79,26 @@ var crop = (function () {
             selector = document.getElementById(selector_id);
 
             // Register handlers to update dragging features
-            canvas.addEventListener("mousedown", crop.mouse_down);
-            canvas.addEventListener("mousemove", crop.mouse_move);
-            canvas.addEventListener("mouseup", crop.mouse_up);
+            canvas.addEventListener("mousedown", PygmyMarmoset.mouse_down);
+            canvas.addEventListener("mousemove", PygmyMarmoset.mouse_move);
+            canvas.addEventListener("mouseup", PygmyMarmoset.mouse_up);
 
             // Register event handler for changing file
             selector.addEventListener("change", function (event) {
                 var files = event.target.files;
-                
-                // Go through files attached 
+
+                // Go through files attached
                 for (var i = 0, f ; f = files[i] ; i++) {
                     if (!f.type.match("image.*")) {
                         continue;
                     }
-                    
+
                     // If its an image read it and set it to the current image
                     var reader = new FileReader();
                     reader.onload = function (e) {
                         var image = new Image();
                         image.onload = function () {
-                            crop.set_img(image);
+                            PygmyMarmoset.set_img(image);
                         };
                         image.src = e.target.result;
                     };
@@ -115,14 +115,14 @@ var crop = (function () {
             sliding = false;
 
             // Draw once at the beginning
-            crop.render();
+            PygmyMarmoset.render();
         },
 
         mouse_down: function(event) {
             // Set dragging variables
             last_x = event.clientX;
             last_y = event.clientY;
-            
+
             // Are we dragging the image or sliding the slider?
             // Fix coordinates
             var x = last_x - canvas.getBoundingClientRect().left;
@@ -136,8 +136,8 @@ var crop = (function () {
             }
 
             // Register events for the body as well so you can drag off the picture
-            document.body.addEventListener("mousemove", crop.mouse_move);
-            document.body.addEventListener("mouseup", crop.mouse_up);
+            document.body.addEventListener("mousemove", PygmyMarmoset.mouse_move);
+            document.body.addEventListener("mouseup", PygmyMarmoset.mouse_up);
 
             // Disable text selection
             if (event.stopPropogation) event.stopPropogation();
@@ -155,46 +155,46 @@ var crop = (function () {
             sliding = false;
 
             // Remove the mousemove events after we let go so that we don't degrade performance
-            document.body.removeEventListener("mousemove", crop.mouse_move);
-            document.body.removeEventListener("mouseup", crop.mouse_up);
+            document.body.removeEventListener("mousemove", PygmyMarmoset.mouse_move);
+            document.body.removeEventListener("mouseup", PygmyMarmoset.mouse_up);
         },
 
         mouse_move: function(event) {
             // If we are dragging move the offset and rerender
             if (dragging) {
-                crop.toggle_zoom(false);                
+                PygmyMarmoset.toggle_zoom(false);
                 x_offset -= last_x - event.clientX;
                 y_offset -= last_y - event.clientY;
                 last_x = event.clientX;
                 last_y = event.clientY;
-                
+
                 // Stay in bounds and redraw
                 stay_in_bounds();
-                crop.render();
+                PygmyMarmoset.render();
             }
             else if (sliding) {
                 // Find x value of mouse and adjust the zoom level
                 var x = event.clientX - canvas.getBoundingClientRect().left;
                 var before_zoom = zoom;
                 zoom = get_zoom_level(x);
-                
+
                 // Zoom extrema
                 zoom = Math.max(zoom, min_zoom);
                 zoom = Math.min(zoom, max_zoom);
 
                 // Adjust image then draw
-                crop.change_zoom(before_zoom, zoom);
+                PygmyMarmoset.change_zoom(before_zoom, zoom);
                 stay_in_bounds();
-                crop.render();
+                PygmyMarmoset.render();
             }
             else {
                 var y = event.clientY;
                 // Check if we can reveal the drag bar
                 if (event.clientY > canvas.getBoundingClientRect().top + canvas.height - 2 * MARGIN) {
-                    crop.toggle_zoom(true);
+                    PygmyMarmoset.toggle_zoom(true);
                 }
                 else {
-                    crop.toggle_zoom(false);
+                    PygmyMarmoset.toggle_zoom(false);
                 }
             }
 
@@ -209,7 +209,7 @@ var crop = (function () {
         get_data: function(callback, encoding) {
             // Make a png (or something else) out of the selected region
             var encoding = encoding || "image/png";
-            
+
             // Create elements to hold the new image
             var new_canvas = document.createElement('canvas');
             new_canvas.width = max_width;
@@ -219,9 +219,9 @@ var crop = (function () {
             // Get data from one canvas and draw it to the other
             var data = ctx.getImageData(canvas.width/4, canvas.height/4, max_width, max_height);
             new_ctx.putImageData(data, 0, 0);
-            
+
             // Create image and set callback function trigger when it loads
-            var result_image = new Image();            
+            var result_image = new Image();
             result_image.onload = function() {
                 callback(result_image);
             };
@@ -229,14 +229,14 @@ var crop = (function () {
             // Start loading image
             result_image.src = new_canvas.toDataURL(encoding);
         },
-        
+
         toggle_zoom: function(value) {
             if (showing_zoom !== value) {
                 showing_zoom = value;
-                crop.render();
+                PygmyMarmoset.render();
             }
         },
-        
+
         set_img: function(new_img) {
             // Center new image
             x_offset = -(new_img.width / 2 - canvas.width / 2);
@@ -252,9 +252,9 @@ var crop = (function () {
             var zoom_candidate_w = Math.max(base_min_zoom, max_width / img.width);
             var zoom_candidate_h = Math.max(base_min_zoom, max_height / img.height);
             min_zoom = Math.max(zoom_candidate_w, zoom_candidate_h);
-            crop.render();
+            PygmyMarmoset.render();
         },
-        
+
         change_zoom: function(before, after) {
             // Move picture to accomadate scaling
             var pre_width = img.width * before;
@@ -278,7 +278,7 @@ var crop = (function () {
                 var scaled_width = zoom * img.width;
                 var scaled_height = zoom * img.height;
                 ctx.drawImage(img, x_offset, y_offset, scaled_width, scaled_height);
-                
+
                 // Then draw the selection rectangle
                 ctx.strokeStyle = "black";
                 ctx.strokeRect(max_width/2, max_height/2, max_width, max_height);
@@ -304,7 +304,7 @@ var crop = (function () {
                     ctx.arc(coord, canvas.height - MARGIN, MARGIN / 2, 0, 2 * Math.PI);
                     ctx.stroke();
                     ctx.fill();
-                    
+
                     // Draw zoom level
                     ctx.font = "10px Georgia";
                     ctx.fillStyle = "black";
