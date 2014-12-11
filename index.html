@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Crop by stealthycoin</title>
+    <title>PygmyMarmoset.js by stealthycoin</title>
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/style.css">
@@ -16,8 +16,8 @@
   <body>
     <div class="wrapper">
       <header>
-        <h1>Crop</h1>
-        <p>Crop images in JS</p>
+        <h1>PygmyMarmoset</h1>
+        <p>Crop and upload images in js with ease</p>
 
         <p class="view"><a href="https://github.com/stealthycoin/crop">View the Project on GitHub <small>stealthycoin/crop</small></a></p>
 
@@ -28,8 +28,8 @@
           <li><a href="https://github.com/stealthycoin/crop">View On <strong>GitHub</strong></a></li>
         </ul>
       </header>
-      
-      <section>  
+
+      <section>
         <div id="wrapper">
           <h2>Demo</h2>
           <canvas id="test_canvas">Browser doesn't support canvas.</canvas>
@@ -37,7 +37,7 @@
           <input id="selector" type="file" />
 
           <a href="#" onclick="click_crop();return false;">Crop</a>
-          <br />          
+          <br />
           <br />
           <hr />
           <p>Result Image</p>
@@ -51,16 +51,16 @@
       </footer>
     </div>
     <script src="javascripts/scale.fix.js"></script>
-    <script src="javascripts/crop.js"></script>
+    <script src="javascripts/PygmyMarmoset.js"></script>
     <script>
-      crop.init("test_canvas", "selector", 100, 100);
+      PygmyMarmoset.init("test_canvas", "selector", 100, 100);
 
       function callback(img) {
       document.getElementById("result").src = img.src;
       }
 
       function click_crop() {
-      crop.get_data(callback);
+      PygmyMarmoset.get_data(callback);
       }
     </script>
   </body>
