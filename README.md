@@ -5,8 +5,7 @@ PygmyMarmoset.js
 Easily crop images in JS
 -------------------
 
-```
-Javascript
+```avascript
 // Initialize
 PygmyMarmoset.init("test_canvas", "selector", 100, 100);
 function callback(img) {
@@ -17,8 +16,7 @@ function click_crop() {
 }
 ```
 
-```
-HTML
+```html
 <canvas id="test_canvas">Browser doesn't support canvas.</canvas>
 <br />
 <input id="selector" type="file" />
