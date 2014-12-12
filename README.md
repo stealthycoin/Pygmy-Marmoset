@@ -5,7 +5,7 @@ PygmyMarmoset.js
 Easily crop images in JS
 -------------------
 
-```avascript
+```javascript
 // Initialize
 PygmyMarmoset.init("test_canvas", "selector", 100, 100);
 function callback(img) {
