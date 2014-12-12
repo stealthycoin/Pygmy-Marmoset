@@ -10,7 +10,7 @@ var PygmyMarmoset = (function () {
     var max_width, max_height;
 
     // Variables to handle dragging
-    var x_offset, y_offset;
+    var x_center, y_center;
     var last_x, last_y;
     var dragging;
 
@@ -28,11 +28,11 @@ var PygmyMarmoset = (function () {
     }
 
     function stay_in_bounds() {
-        // Set extrema for offsets
-        x_offset = Math.min(x_offset, max_width / 2);
-        y_offset = Math.min(y_offset, max_height / 2);
-        x_offset = Math.max(x_offset, (canvas.width * 3.0 / 4.0) - get_width());
-        y_offset = Math.max(y_offset, (canvas.height * 3.0 / 4.0) - get_height());
+        // Set extrema for offsets trivially
+        x_center = Math.max(x_center, max_width/2);
+        y_center = Math.max(y_center, max_height/2);
+        x_center = Math.min(x_center, get_width() - max_width/2);
+        y_center = Math.min(y_center, get_height() - max_height/2);
     }
 
     function get_zoom_coordinate() {
@@ -109,8 +109,8 @@ var PygmyMarmoset = (function () {
             // Initialize dragging managment variables
             max_width = max_w;
             max_height = max_h;
-            x_offset = 0;
-            y_offset = 0;
+            x_center = 0;
+            y_center = 0;
             dragging = false;
             sliding = false;
 
@@ -163,8 +163,8 @@ var PygmyMarmoset = (function () {
             // If we are dragging move the offset and rerender
             if (dragging) {
                 PygmyMarmoset.toggle_zoom(false);
-                x_offset -= last_x - event.clientX;
-                y_offset -= last_y - event.clientY;
+                x_center += last_x - event.clientX;
+                y_center += last_y - event.clientY;
                 last_x = event.clientX;
                 last_y = event.clientY;
 
@@ -239,8 +239,8 @@ var PygmyMarmoset = (function () {
 
         set_img: function(new_img) {
             // Center new image
-            x_offset = -(new_img.width / 2 - canvas.width / 2);
-            y_offset = -(new_img.height / 2 - canvas.height / 2);
+            x_center = new_img.width / 2;
+            y_center = new_img.height / 2;
 
             // Reset zoom level
             zoom = 1;
@@ -261,11 +261,9 @@ var PygmyMarmoset = (function () {
             var pre_height = img.height * before;
             var post_width = img.width * after;
             var post_height = img.height * after;
-            var width_diff = pre_width - post_width;
-            var height_diff = pre_height - post_height;
-            console.log(pre_width, post_width);
-            x_offset += width_diff / 2;
-            y_offset += height_diff / 2;
+
+            x_center = post_width / pre_width * x_center;
+            y_center = post_height / pre_height * y_center;
         },
 
         render: function() {
@@ -277,7 +275,7 @@ var PygmyMarmoset = (function () {
                 // Find width and height for scaling
                 var scaled_width = zoom * img.width;
                 var scaled_height = zoom * img.height;
-                ctx.drawImage(img, x_offset, y_offset, scaled_width, scaled_height);
+                ctx.drawImage(img, -(x_center-max_width), -(y_center-max_height), scaled_width, scaled_height);
 
                 // Then draw the selection rectangle
                 ctx.strokeStyle = "black";
