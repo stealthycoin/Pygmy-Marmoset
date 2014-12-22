@@ -24,3 +24,7 @@ function click_crop() {
 <p>Result Image</p>
 <img id="result" />
 ```
+
+Demo
+--------------
+http://stealthycoin.github.io/Pygmy-Marmoset/
