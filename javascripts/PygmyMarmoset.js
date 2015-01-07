@@ -22,10 +22,6 @@ var PygmyMarmoset = (function () {
     var showing_zoom = false;
     var sliding = false;
 
-    // Original image
-    var original;
-    var original_data;
-
     function distance(a,b,c,d) {
         // Finds distance from (a,b) to (c,d)
         return Math.sqrt((a-c)*(a-c)+(b-d)*(b-d));
@@ -69,20 +65,6 @@ var PygmyMarmoset = (function () {
 
     function get_height() {
         return img.height * zoom;
-    }
-
-    function getBase64Image(img) {
-        // Create an empty canvas element
-        var canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-
-        var dataURL = canvas.toDataURL("image/png");
-
-        return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
     }
 
     function blobify(img) {
@@ -241,6 +223,8 @@ var PygmyMarmoset = (function () {
         },
 
         get_data: function(callback, encoding) {
+            PygmyMarmoset.render(false);
+
             // Make a png (or something else) out of the selected region
             var encoding = encoding || "image/png";
 
@@ -249,19 +233,37 @@ var PygmyMarmoset = (function () {
             new_canvas.width = max_width;
             new_canvas.height = max_height;
             var new_ctx = new_canvas.getContext('2d');
-
-            // Get data from one canvas and draw it to the other
             var data = ctx.getImageData(canvas.width/4, canvas.height/4, max_width, max_height);
             new_ctx.putImageData(data, 0, 0);
 
-            // Create image and set callback function trigger when it loads
+            // Create elements to hold the original image
+            var orig_canvas = document.createElement('canvas');
+            orig_canvas.width = img.width;
+            orig_canvas.height = img.height;
+            var orig_ctx = orig_canvas.getContext('2d');
+            orig_ctx.drawImage(img, 0, 0);
+
+            // Create images and set callback function trigger when they load
+            var done = 2;
             var result_image = new Image();
+            var original_image = new Image();
             result_image.onload = function() {
-                callback(result_image, original);
+                done--;
+                if (done === 0) {
+                    callback(result_image, original_image);
+                }
+            };
+
+            original_image.onload = function() {
+                done--;
+                if (done === 0) {
+                    callback(result_image, original_image);
+                }
             };
 
             // Start loading image
             result_image.src = new_canvas.toDataURL(encoding);
+            original_image.src = orig_canvas.toDataURL(encoding);
         },
 
         get_blob: function (callback, encoding) {
@@ -293,9 +295,6 @@ var PygmyMarmoset = (function () {
             var zoom_candidate_h = Math.max(base_min_zoom, max_height / img.height);
             min_zoom = Math.max(zoom_candidate_w, zoom_candidate_h);
 
-            original = new_img;
-            original_data = getBase64Image(new_img);
-
             PygmyMarmoset.render();
         },
 
@@ -310,7 +309,10 @@ var PygmyMarmoset = (function () {
             y_center = post_height / pre_height * y_center;
         },
 
-        render: function() {
+        render: function(show_interface) {
+            // Decide whether or not to show the interface (default is true)
+            if (show_interface === undefined) show_interface = true;
+
             // Draw background
             ctx.fillStyle = "lightgray";
             ctx.fillRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
@@ -320,37 +322,38 @@ var PygmyMarmoset = (function () {
                 var scaled_width = zoom * img.width;
                 var scaled_height = zoom * img.height;
                 ctx.drawImage(img, -(x_center-max_width), -(y_center-max_height), scaled_width, scaled_height);
+                if (show_interface) {
+                    // Then draw the selection rectangle
+                    ctx.strokeStyle = "black";
+                    ctx.strokeRect(max_width/2, max_height/2, max_width, max_height);
 
-                // Then draw the selection rectangle
-                ctx.strokeStyle = "black";
-                ctx.strokeRect(max_width/2, max_height/2, max_width, max_height);
+                    if (showing_zoom) {
+                        // Draw slider bar line
+                        var min = MARGIN;
+                        var max = canvas.width - MARGIN;
+                        ctx.beginPath();
+                        ctx.moveTo(min, canvas.height - MARGIN);
+                        ctx.lineTo(max, canvas.height - MARGIN);
+                        ctx.stroke();
 
-                if (showing_zoom) {
-                    // Draw slider bar line
-                    var min = MARGIN;
-                    var max = canvas.width - MARGIN;
-                    ctx.beginPath();
-                    ctx.moveTo(min, canvas.height - MARGIN);
-                    ctx.lineTo(max, canvas.height - MARGIN);
-                    ctx.stroke();
+                        // Draw slider bar button
+                        // Find coordinate to draw circle
+                        var coord_diff = max - min;
+                        var coord_unit = coord_diff / 100.0;
+                        var zooms_diff = max_zoom - min_zoom;
+                        var zooms_unit = zooms_diff / 100.0;
+                        var units = (zoom - min_zoom) / zooms_unit;
+                        var coord = units * coord_unit + min;
+                        ctx.beginPath();
+                        ctx.arc(coord, canvas.height - MARGIN, MARGIN / 2, 0, 2 * Math.PI);
+                        ctx.stroke();
+                        ctx.fill();
 
-                    // Draw slider bar button
-                    // Find coordinate to draw circle
-                    var coord_diff = max - min;
-                    var coord_unit = coord_diff / 100.0;
-                    var zooms_diff = max_zoom - min_zoom;
-                    var zooms_unit = zooms_diff / 100.0;
-                    var units = (zoom - min_zoom) / zooms_unit;
-                    var coord = units * coord_unit + min;
-                    ctx.beginPath();
-                    ctx.arc(coord, canvas.height - MARGIN, MARGIN / 2, 0, 2 * Math.PI);
-                    ctx.stroke();
-                    ctx.fill();
-
-                    // Draw zoom level
-                    ctx.font = "10px Georgia";
-                    ctx.fillStyle = "black";
-                    ctx.fillText(zoom.toFixed(2) + " x", MARGIN / 2, MARGIN);
+                        // Draw zoom level
+                        ctx.font = "10px Georgia";
+                        ctx.fillStyle = "black";
+                        ctx.fillText(zoom.toFixed(2) + " x", MARGIN / 2, MARGIN);
+                    }
                 }
             }
         }
