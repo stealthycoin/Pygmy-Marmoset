@@ -42,6 +42,7 @@
           <hr />
           <p>Result Image</p>
           <img id="result" />
+          <img id="original" />
         </div>
       </section>
 
@@ -55,8 +56,9 @@
     <script>
       PygmyMarmoset.init("test_canvas", "selector", 100, 100);
 
-      function callback(img) {
+      function callback(img, orig) {
       document.getElementById("result").src = img.src;
+      document.getElementById("original").src = orig.src;
       }
 
       function click_crop() {

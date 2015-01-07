@@ -22,6 +22,10 @@ var PygmyMarmoset = (function () {
     var showing_zoom = false;
     var sliding = false;
 
+    // Original image
+    var original;
+    var original_data;
+
     function distance(a,b,c,d) {
         // Finds distance from (a,b) to (c,d)
         return Math.sqrt((a-c)*(a-c)+(b-d)*(b-d));
@@ -65,6 +69,20 @@ var PygmyMarmoset = (function () {
 
     function get_height() {
         return img.height * zoom;
+    }
+
+    function getBase64Image(img) {
+        // Create an empty canvas element
+        var canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+
+        var dataURL = canvas.toDataURL("image/png");
+
+        return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
     }
 
     return {
@@ -223,7 +241,7 @@ var PygmyMarmoset = (function () {
             // Create image and set callback function trigger when it loads
             var result_image = new Image();
             result_image.onload = function() {
-                callback(result_image);
+                callback(result_image, original);
             };
 
             // Start loading image
@@ -252,6 +270,10 @@ var PygmyMarmoset = (function () {
             var zoom_candidate_w = Math.max(base_min_zoom, max_width / img.width);
             var zoom_candidate_h = Math.max(base_min_zoom, max_height / img.height);
             min_zoom = Math.max(zoom_candidate_w, zoom_candidate_h);
+
+            original = new_img;
+            original_data = getBase64Image(new_img);
+
             PygmyMarmoset.render();
         },
 
