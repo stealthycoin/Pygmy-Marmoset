@@ -57,14 +57,17 @@
       PygmyMarmoset.init("test_canvas", "selector", 100, 100);
 
       function callback(img, orig) {
-      document.getElementById("result").src = img.src;
+          document.getElementById("result").src = img.src;
       }
 
       function click_crop() {
-      PygmyMarmoset.get_data(callback);
-      PygmyMarmoset.get_blob(function(image, original) {
-      console.log(image);
-      });
+          // Get image data
+          PygmyMarmoset.get_data(callback);
+
+          // Get blob data for uploading
+          PygmyMarmoset.get_blob(function(image, original) {
+              console.log(image);
+          });
       }
     </script>
   </body>
