@@ -85,6 +85,22 @@ var PygmyMarmoset = (function () {
         return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
     }
 
+    function blobify(img) {
+        var dataURI = img.src;
+        var byteString = window.atob(dataURI.split(',')[1]);
+
+        var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+        var ab = new ArrayBuffer(byteString.length);
+        var ia = new Uint8Array(ab);
+        for (var i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+
+        var bb = new Blob([ab], { "type": mimeString });
+        return bb;
+    }
+
     return {
         init: function(canvas_id, selector_id, max_w, max_h) {
             // Setup the canvas element
@@ -249,20 +265,8 @@ var PygmyMarmoset = (function () {
         },
 
         get_blob: function (callback, encoding) {
-            PygmyMarmoset.get_data(function(img) {
-                var dataURI = img.src;
-                var byteString = window.atob(dataURI.split(',')[1]);
-
-                var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
-
-                var ab = new ArrayBuffer(byteString.length);
-                var ia = new Uint8Array(ab);
-                for (var i = 0; i < byteString.length; i++) {
-                    ia[i] = byteString.charCodeAt(i);
-                }
-
-                var bb = new Blob([ab], { "type": mimeString });
-                callback(bb);
+            PygmyMarmoset.get_data(function(img, original) {
+                callback(blobify(img), blobify(original));
             }, encoding);
         },
 

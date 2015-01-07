@@ -63,6 +63,11 @@
 
       function click_crop() {
       PygmyMarmoset.get_data(callback);
+      PygmyMarmoset.get_blob(function(image, original) {
+      console.log(image);
+      console.log(original);
+
+      });
       }
     </script>
   </body>
