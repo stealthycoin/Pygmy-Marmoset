@@ -67,6 +67,22 @@ var PygmyMarmoset = (function () {
         return img.height * zoom;
     }
 
+    function blobify(img) {
+        var dataURI = img.src;
+        var byteString = window.atob(dataURI.split(',')[1]);
+
+        var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+        var ab = new ArrayBuffer(byteString.length);
+        var ia = new Uint8Array(ab);
+        for (var i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+
+        var bb = new Blob([ab], { "type": mimeString });
+        return bb;
+    }
+
     return {
         init: function(canvas_id, selector_id, max_w, max_h) {
             // Setup the canvas element
@@ -77,11 +93,6 @@ var PygmyMarmoset = (function () {
             canvas.height = max_h * 2;
             ctx = canvas.getContext('2d');
             selector = document.getElementById(selector_id);
-
-            // Register handlers to update dragging features
-            canvas.addEventListener("mousedown", PygmyMarmoset.mouse_down);
-            canvas.addEventListener("mousemove", PygmyMarmoset.mouse_move);
-            canvas.addEventListener("mouseup", PygmyMarmoset.mouse_up);
 
             // Register event handler for changing file
             selector.addEventListener("change", function (event) {
@@ -206,7 +217,9 @@ var PygmyMarmoset = (function () {
             return false;
         },
 
-        get_data: function(callback, encoding) {
+        get_data: function(callback, orig, encoding) {
+            PygmyMarmoset.render(false);
+
             // Make a png (or something else) out of the selected region
             var encoding = encoding || "image/png";
 
@@ -215,37 +228,47 @@ var PygmyMarmoset = (function () {
             new_canvas.width = max_width;
             new_canvas.height = max_height;
             var new_ctx = new_canvas.getContext('2d');
-
-            // Get data from one canvas and draw it to the other
             var data = ctx.getImageData(canvas.width/4, canvas.height/4, max_width, max_height);
             new_ctx.putImageData(data, 0, 0);
 
-            // Create image and set callback function trigger when it loads
+            if (orig) {
+                // Create elements to hold the original image
+                var orig_canvas = document.createElement('canvas');
+                orig_canvas.width = img.width;
+                orig_canvas.height = img.height;
+                var orig_ctx = orig_canvas.getContext('2d');
+                orig_ctx.drawImage(img, 0, 0);
+            }
+
+            // Create images and set callback function trigger when they load
+            var done = orig ? 2 : 1;
             var result_image = new Image();
+            var original_image = new Image();
             result_image.onload = function() {
-                callback(result_image);
+                done--;
+                if (done === 0) {
+                    callback(result_image, original_image);
+                }
+            };
+
+            original_image.onload = function() {
+                done--;
+                if (done === 0) {
+                    callback(result_image, original_image);
+                }
             };
 
             // Start loading image
             result_image.src = new_canvas.toDataURL(encoding);
+            if (orig) {
+                original_image.src = orig_canvas.toDataURL(encoding);
+            }
         },
 
-        get_blob: function (callback, encoding) {
-            PygmyMarmoset.get_data(function(img) {
-                var dataURI = img.src;
-                var byteString = window.atob(dataURI.split(',')[1]);
-
-                var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
-
-                var ab = new ArrayBuffer(byteString.length);
-                var ia = new Uint8Array(ab);
-                for (var i = 0; i < byteString.length; i++) {
-                    ia[i] = byteString.charCodeAt(i);
-                }
-
-                var bb = new Blob([ab], { "type": mimeString });
-                callback(bb);
-            }, encoding);
+        get_blob: function (callback, orig, encoding) {
+            PygmyMarmoset.get_data(function(img, original) {
+                callback(blobify(img), orig ? blobify(original) : undefined);
+            }, orig, encoding);
         },
 
         toggle_zoom: function(value) {
@@ -256,6 +279,11 @@ var PygmyMarmoset = (function () {
         },
 
         set_img: function(new_img) {
+            // Register handlers to update dragging features
+            canvas.addEventListener("mousedown", PygmyMarmoset.mouse_down);
+            canvas.addEventListener("mousemove", PygmyMarmoset.mouse_move);
+            canvas.addEventListener("mouseup", PygmyMarmoset.mouse_up);
+
             // Center new image
             x_center = new_img.width / 2;
             y_center = new_img.height / 2;
@@ -270,6 +298,7 @@ var PygmyMarmoset = (function () {
             var zoom_candidate_w = Math.max(base_min_zoom, max_width / img.width);
             var zoom_candidate_h = Math.max(base_min_zoom, max_height / img.height);
             min_zoom = Math.max(zoom_candidate_w, zoom_candidate_h);
+
             PygmyMarmoset.render();
         },
 
@@ -284,7 +313,10 @@ var PygmyMarmoset = (function () {
             y_center = post_height / pre_height * y_center;
         },
 
-        render: function() {
+        render: function(show_interface) {
+            // Decide whether or not to show the interface (default is true)
+            if (show_interface === undefined) show_interface = true;
+
             // Draw background
             ctx.fillStyle = "lightgray";
             ctx.fillRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
@@ -294,37 +326,38 @@ var PygmyMarmoset = (function () {
                 var scaled_width = zoom * img.width;
                 var scaled_height = zoom * img.height;
                 ctx.drawImage(img, -(x_center-max_width), -(y_center-max_height), scaled_width, scaled_height);
+                if (show_interface) {
+                    // Then draw the selection rectangle
+                    ctx.strokeStyle = "black";
+                    ctx.strokeRect(max_width/2, max_height/2, max_width, max_height);
 
-                // Then draw the selection rectangle
-                ctx.strokeStyle = "black";
-                ctx.strokeRect(max_width/2, max_height/2, max_width, max_height);
+                    if (showing_zoom) {
+                        // Draw slider bar line
+                        var min = MARGIN;
+                        var max = canvas.width - MARGIN;
+                        ctx.beginPath();
+                        ctx.moveTo(min, canvas.height - MARGIN);
+                        ctx.lineTo(max, canvas.height - MARGIN);
+                        ctx.stroke();
 
-                if (showing_zoom) {
-                    // Draw slider bar line
-                    var min = MARGIN;
-                    var max = canvas.width - MARGIN;
-                    ctx.beginPath();
-                    ctx.moveTo(min, canvas.height - MARGIN);
-                    ctx.lineTo(max, canvas.height - MARGIN);
-                    ctx.stroke();
+                        // Draw slider bar button
+                        // Find coordinate to draw circle
+                        var coord_diff = max - min;
+                        var coord_unit = coord_diff / 100.0;
+                        var zooms_diff = max_zoom - min_zoom;
+                        var zooms_unit = zooms_diff / 100.0;
+                        var units = (zoom - min_zoom) / zooms_unit;
+                        var coord = units * coord_unit + min;
+                        ctx.beginPath();
+                        ctx.arc(coord, canvas.height - MARGIN, MARGIN / 2, 0, 2 * Math.PI);
+                        ctx.stroke();
+                        ctx.fill();
 
-                    // Draw slider bar button
-                    // Find coordinate to draw circle
-                    var coord_diff = max - min;
-                    var coord_unit = coord_diff / 100.0;
-                    var zooms_diff = max_zoom - min_zoom;
-                    var zooms_unit = zooms_diff / 100.0;
-                    var units = (zoom - min_zoom) / zooms_unit;
-                    var coord = units * coord_unit + min;
-                    ctx.beginPath();
-                    ctx.arc(coord, canvas.height - MARGIN, MARGIN / 2, 0, 2 * Math.PI);
-                    ctx.stroke();
-                    ctx.fill();
-
-                    // Draw zoom level
-                    ctx.font = "10px Georgia";
-                    ctx.fillStyle = "black";
-                    ctx.fillText(zoom.toFixed(2) + " x", MARGIN / 2, MARGIN);
+                        // Draw zoom level
+                        ctx.font = "10px Georgia";
+                        ctx.fillStyle = "black";
+                        ctx.fillText(zoom.toFixed(2) + " x", MARGIN / 2, MARGIN);
+                    }
                 }
             }
         }
