@@ -58,15 +58,12 @@
 
       function callback(img, orig) {
       document.getElementById("result").src = img.src;
-      document.getElementById("original").src = orig.src;
       }
 
       function click_crop() {
       PygmyMarmoset.get_data(callback);
       PygmyMarmoset.get_blob(function(image, original) {
       console.log(image);
-      console.log(original);
-
       });
       }
     </script>

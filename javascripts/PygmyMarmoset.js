@@ -217,7 +217,7 @@ var PygmyMarmoset = (function () {
             return false;
         },
 
-        get_data: function(callback, encoding) {
+        get_data: function(callback, orig, encoding) {
             PygmyMarmoset.render(false);
 
             // Make a png (or something else) out of the selected region
@@ -231,15 +231,17 @@ var PygmyMarmoset = (function () {
             var data = ctx.getImageData(canvas.width/4, canvas.height/4, max_width, max_height);
             new_ctx.putImageData(data, 0, 0);
 
-            // Create elements to hold the original image
-            var orig_canvas = document.createElement('canvas');
-            orig_canvas.width = img.width;
-            orig_canvas.height = img.height;
-            var orig_ctx = orig_canvas.getContext('2d');
-            orig_ctx.drawImage(img, 0, 0);
+            if (orig) {
+                // Create elements to hold the original image
+                var orig_canvas = document.createElement('canvas');
+                orig_canvas.width = img.width;
+                orig_canvas.height = img.height;
+                var orig_ctx = orig_canvas.getContext('2d');
+                orig_ctx.drawImage(img, 0, 0);
+            }
 
             // Create images and set callback function trigger when they load
-            var done = 2;
+            var done = orig ? 2 : 1;
             var result_image = new Image();
             var original_image = new Image();
             result_image.onload = function() {
@@ -258,13 +260,15 @@ var PygmyMarmoset = (function () {
 
             // Start loading image
             result_image.src = new_canvas.toDataURL(encoding);
-            original_image.src = orig_canvas.toDataURL(encoding);
+            if (orig) {
+                original_image.src = orig_canvas.toDataURL(encoding);
+            }
         },
 
-        get_blob: function (callback, encoding) {
+        get_blob: function (callback, orig, encoding) {
             PygmyMarmoset.get_data(function(img, original) {
-                callback(blobify(img), blobify(original));
-            }, encoding);
+                callback(blobify(img), orig ? blobify(original) : undefined);
+            }, orig, encoding);
         },
 
         toggle_zoom: function(value) {
