@@ -94,11 +94,6 @@ var PygmyMarmoset = (function () {
             ctx = canvas.getContext('2d');
             selector = document.getElementById(selector_id);
 
-            // Register handlers to update dragging features
-            canvas.addEventListener("mousedown", PygmyMarmoset.mouse_down);
-            canvas.addEventListener("mousemove", PygmyMarmoset.mouse_move);
-            canvas.addEventListener("mouseup", PygmyMarmoset.mouse_up);
-
             // Register event handler for changing file
             selector.addEventListener("change", function (event) {
                 var files = event.target.files;
@@ -280,6 +275,11 @@ var PygmyMarmoset = (function () {
         },
 
         set_img: function(new_img) {
+            // Register handlers to update dragging features
+            canvas.addEventListener("mousedown", PygmyMarmoset.mouse_down);
+            canvas.addEventListener("mousemove", PygmyMarmoset.mouse_move);
+            canvas.addEventListener("mouseup", PygmyMarmoset.mouse_up);
+
             // Center new image
             x_center = new_img.width / 2;
             y_center = new_img.height / 2;
